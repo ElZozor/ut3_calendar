@@ -3,21 +3,34 @@ package com.edt.ut3.backend.database.viewmodels
 import android.content.Context
 import com.edt.ut3.backend.celcat.Event
 import com.edt.ut3.backend.database.AppDatabase
+import com.edt.ut3.backend.note.Note
 
 class EventViewModel(context: Context) {
 
-    private val dao = AppDatabase.getInstance(context).eventDao()
+    private val eventDao = AppDatabase.getInstance(context).eventDao()
+    private val noteViewModel = NotesViewModel(context)
 
-    suspend fun getEventsByIDs(vararg ids: String) = dao.selectByIDs(*ids)
+    suspend fun getEventsByIDs(vararg ids: String) = eventDao.selectByIDs(*ids)
 
-    suspend fun getEvents() = dao.selectAll()
+    suspend fun getEventByID(eventID: String) = getEventsByIDs(eventID).getOrNull(0)
 
-    fun getEventLD() = dao.selectAllLD()
+    suspend fun getEvents() = eventDao.selectAll()
 
-    suspend fun insert(vararg events: Event) = dao.insert(*events)
+    fun getEventLD() = eventDao.selectAllLD()
 
-    suspend fun delete(vararg events: Event) = dao.delete(*events)
+    suspend fun insert(vararg events: Event) = eventDao.insert(*events)
 
-    suspend fun update(vararg events: Event) = dao.update(*events)
+    suspend fun delete(vararg events: Event) = eventDao.delete(*events)
+
+    suspend fun update(vararg events: Event) = eventDao.update(*events)
+
+    suspend fun getEventWithNote(eventID: String): Pair<Event?, Note?> {
+        val event = getEventByID(eventID)
+        val note = event?.noteID?.let { noteID ->
+            noteViewModel.getNoteByID(noteID)
+        }
+
+        return Pair(event, note)
+    }
 
 }
